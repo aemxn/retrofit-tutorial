@@ -1,85 +1,69 @@
 package app.aimanbaharum.retrofittutorial;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.util.Log;
+import android.widget.Toast;
 
-import app.aimanbaharum.retrofittutorial.api.ApiManager;
+import javax.inject.Inject;
+
+import app.aimanbaharum.retrofittutorial.api.Github;
+import app.aimanbaharum.retrofittutorial.loader.Callback;
+import app.aimanbaharum.retrofittutorial.loader.RetrofitLoader;
+import app.aimanbaharum.retrofittutorial.loader.RetrofitLoaderManager;
 import app.aimanbaharum.retrofittutorial.model.GitModel;
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Callback<GitModel> {
 
-    Button click;
-    TextView tv;
-    EditText edit_user;
-    ProgressBar pbar;
-    String API = "http://api.github.com";
+    @Inject
+    Github githubService;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onFailure(Exception ex) {
+        setProgressBarIndeterminateVisibility(false);
+
+        Toast.makeText(this, "Error: " + ex.getMessage(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onSuccess(GitModel result) {
+        Log.d("User loader", "onSuccess");
+
+        displayResults(result);
+
+    }
+
+    private void displayResults(GitModel result) {
+
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        ((App)getApplication()).inject(this);
+
         setContentView(R.layout.activity_main);
 
-        click = (Button) findViewById(R.id.button);
-        tv = (TextView) findViewById(R.id.tv);
-        edit_user = (EditText) findViewById(R.id.edit);
-        pbar = (ProgressBar) findViewById(R.id.pb);
-        pbar.setVisibility(View.INVISIBLE);
-
-        click.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String user = edit_user.getText().toString();
-                pbar.setVisibility(View.VISIBLE);
-
-                ApiManager.getService().getFeed(user, new Callback<GitModel>() {
-                    @Override
-                    public void success(GitModel gitmodel, Response response) {
-                        tv.setText("Github Name :" + gitmodel.getName()
-                                + "\nWebsite :" + gitmodel.getBlog()
-                                + "\nCompany Name :" + gitmodel.getCompany());
-                        pbar.setVisibility(View.INVISIBLE);
-                    }
-
-                    @Override
-                    public void failure(RetrofitError error) {
-                        tv.setText(error.getMessage());
-                        pbar.setVisibility(View.INVISIBLE);
-                    }
-                });
-            }
-        });
+        UserLoader loader = new UserLoader(this, githubService);
+        RetrofitLoaderManager.init(getLoaderManager(), 0, loader, this);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+    static class UserLoader extends RetrofitLoader<GitModel, Github> {
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        public UserLoader(Context context, Github service) {
+            super(context, service);
         }
 
-        return super.onOptionsItemSelected(item);
+        @Override
+        public GitModel call(Github service) {
+            Log.d("UserLoader", "call");
+
+            return service.getFeed("aimanbaharum");
+        }
+
+
     }
 }

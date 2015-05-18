@@ -9,5 +9,6 @@ Tutorial link: http://themakeinfo.com/2015/04/retrofit-android-tutorial/
   + http://blog.denevell.org/android-retrofit-otto.html
   + http://www.mentula.co.uk/article/eventbus-and-retrofit
   + http://spiritinlife.github.io/android,retrofit,eventbus/2015/02/13/retrofit-eventbus-cool/
+  + http://www.birbit.com/a-recipe-for-writing-responsive-rest-clients-on-android/
 - lrn2cache:
   + http://blog.robinchutaux.com/blog/using-retrofit-with-activeandroid/
